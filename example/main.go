@@ -43,8 +43,8 @@ func main() {
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /test-1", dep.Handler())
 
-	log.Println("listening on :8080")
-	log.Fatal(http.ListenAndServe(":8080", mux))
+	log.Println("listening on :8023")
+	log.Fatal(http.ListenAndServe(":8023", mux))
 }
 
 func (d *Dep) Handler() http.HandlerFunc {
