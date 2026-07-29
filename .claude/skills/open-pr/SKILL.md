@@ -51,6 +51,28 @@ Before running `gh pr create`, resolve Motivation in this order:
 3. Never fall back to a vague placeholder ("various improvements", "see
    commits") or an empty section just to keep moving.
 
+## Base branch: default to main, and check ancestry first
+
+`main` is the base branch for PRs in this repo — don't default to stacking
+on another feature/integration branch (e.g. `unit_test`) just because the
+current branch happened to fork from it.
+
+Before running `gh pr create`, check whether the base you're about to use
+actually gives a clean diff:
+
+```
+git fetch origin
+git log --oneline <your-branch> ^origin/main
+```
+
+If that list contains commits you didn't write for this PR (i.e. the branch
+forked from something that's ahead of `main` but hasn't been merged to
+`main` yet), the diff against `main` will bundle in unrelated, already
+reviewed work. Don't silently pick whichever base makes the diff look
+smaller — tell the user what you see (which branch is ahead of `main` by
+what) and let them choose: merge the intermediate branch into `main` first
+(cleanest), or open against `main` accepting the wider diff.
+
 ## Rest of the flow
 
 Summary and Test plan follow the existing repo convention (see the global
