@@ -2,5 +2,5 @@
 .claude/hooks/.state/
 docs/decision_log/
 .DS_Store
-/.claude/script/*
+.claude/script/*
 /.idea/*
