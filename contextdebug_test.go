@@ -138,7 +138,7 @@ func TestCollect(t *testing.T) {
 			name: "single entry round-trips",
 			ctx:  func() context.Context { return contextdebug.New(context.Background()) },
 			entries: []contextdebug.Entry{
-				{Name: "DepDB", Request: "SELECT 1", Response: 42, LatencyMs: 5},
+				{Name: "DepDB", Request: "SELECT 1", Response: 42, DurationMs: 5},
 			},
 			enabled: true,
 		},
@@ -146,9 +146,9 @@ func TestCollect(t *testing.T) {
 			name: "multiple entries preserve insertion order",
 			ctx:  func() context.Context { return contextdebug.New(context.Background()) },
 			entries: []contextdebug.Entry{
-				{Name: "first", LatencyMs: 1},
-				{Name: "second", LatencyMs: 2},
-				{Name: "third", LatencyMs: 3},
+				{Name: "first", DurationMs: 1},
+				{Name: "second", DurationMs: 2},
+				{Name: "third", DurationMs: 3},
 			},
 			enabled: true,
 		},
@@ -210,7 +210,7 @@ func TestCollect(t *testing.T) {
 		for i := 0; i < n; i++ {
 			go func(i int) {
 				defer wg.Done()
-				contextdebug.Collect(ctx, contextdebug.Entry{Name: "c", LatencyMs: i})
+				contextdebug.Collect(ctx, contextdebug.Entry{Name: "c", DurationMs: i})
 			}(i)
 		}
 		wg.Wait()
@@ -282,27 +282,92 @@ func TestSnapshot(t *testing.T) {
 	})
 }
 
+func TestEntriesLimit(t *testing.T) {
+	cases := []struct {
+		name    string
+		limit   int
+		collect int
+		wantLen int
+	}{
+		{"limit=0 means unlimited", 0, 10, 10},
+		{"under the limit: all entries kept", 3, 2, 2},
+		{"exactly at the limit: all entries kept", 3, 3, 3},
+		{
+			name:    "over the limit: caps exactly at the limit",
+			limit:   3,
+			collect: 10,
+			wantLen: 3,
+		},
+		{"negative limit is ignored: treated as unlimited (only > 0 enables the cap)", -1, 10, 10},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			ctx := contextdebug.New(context.Background(), contextdebug.Option{EntriesLimit: tc.limit})
+			for i := 0; i < tc.collect; i++ {
+				contextdebug.Collect(ctx, contextdebug.Entry{Name: "e"})
+			}
+			if got := len(contextdebug.Snapshot(ctx)); got != tc.wantLen {
+				t.Fatalf("len(Snapshot()) = %d, want %d (EntriesLimit=%d, Collect called %d times)", got, tc.wantLen, tc.limit, tc.collect)
+			}
+		})
+	}
+
+	t.Run("no Option behaves exactly like before New's signature change (unlimited)", func(t *testing.T) {
+		ctx := contextdebug.New(context.Background())
+		for i := 0; i < 10; i++ {
+			contextdebug.Collect(ctx, contextdebug.Entry{Name: "e"})
+		}
+		if got := len(contextdebug.Snapshot(ctx)); got != 10 {
+			t.Fatalf("len(Snapshot()) = %d, want 10", got)
+		}
+	})
+
+	t.Run("concurrent collect with a limit set is race-safe", func(t *testing.T) {
+		// The entriesLimit guard now reads len(s.entries) AFTER acquiring
+		// s.mu, so this is a regression test for the data race that used
+		// to fire here under `go test -race` when the check ran before
+		// the lock.
+		ctx := contextdebug.New(context.Background(), contextdebug.Option{EntriesLimit: 5})
+		const n = 50
+
+		var wg sync.WaitGroup
+		wg.Add(n)
+		for i := 0; i < n; i++ {
+			go func() {
+				defer wg.Done()
+				contextdebug.Collect(ctx, contextdebug.Entry{Name: "c"})
+			}()
+		}
+		wg.Wait()
+
+		if got := len(contextdebug.Snapshot(ctx)); got > n {
+			t.Fatalf("len(Snapshot()) = %d, want <= %d", got, n)
+		}
+	})
+}
+
 func TestEntry_ErrorJSONMarshaling(t *testing.T) {
 	cases := []struct {
 		name string
 		err  error
 		want string
 	}{
-		{"nil error marshals to null", nil, `{"name":"e","req":null,"resp":null,"err":null,"lat_ms":0}`},
+		{"nil error marshals to null", nil, `{"name":"e","req":null,"resp":null,"err":null,"duration_ms":0}`},
 		{
 			name: "errors.New: message is lost (documents current behavior)",
 			err:  errors.New("boom"),
-			want: `{"name":"e","req":null,"resp":null,"err":{},"lat_ms":0}`,
+			want: `{"name":"e","req":null,"resp":null,"err":{},"duration_ms":0}`,
 		},
 		{
 			name: "fmt.Errorf wrapped error: message is lost (documents current behavior)",
 			err:  fmt.Errorf("wrap: %w", errors.New("boom")),
-			want: `{"name":"e","req":null,"resp":null,"err":{},"lat_ms":0}`,
+			want: `{"name":"e","req":null,"resp":null,"err":{},"duration_ms":0}`,
 		},
 		{
 			name: "error with exported fields: those fields happen to survive",
 			err:  &exportedFieldsErr{Msg: "boom"},
-			want: `{"name":"e","req":null,"resp":null,"err":{"Msg":"boom"},"lat_ms":0}`,
+			want: `{"name":"e","req":null,"resp":null,"err":{"Msg":"boom"},"duration_ms":0}`,
 		},
 	}
 

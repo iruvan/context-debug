@@ -1,3 +1,4 @@
+
 package main
 
 import (
@@ -22,7 +23,7 @@ const boredAPIURL = "https://bored-api.appbrewery.com/random"
 func main() {
 	dsn := os.Getenv("POSTGRES_DSN")
 	if dsn == "" {
-		dsn = "postgres://postgres@localhost:5433/postgres?sslmode=disable"
+		dsn = "postgres://myuser@localhost:5432/postgres?sslmode=disable"
 	}
 	db, err := sql.Open("pgx", dsn)
 	if err != nil {

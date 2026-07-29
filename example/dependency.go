@@ -39,7 +39,7 @@ func (d *Dep) DepDB(ctx context.Context, in UserInput) (users []User, err error)
 			Request:   in,
 			Response:  users,
 			Error:     err,
-			LatencyMs: int(time.Since(start).Milliseconds()),
+			DurationMs: int(time.Since(start).Milliseconds()),
 		})
 	}(start)
 
@@ -107,7 +107,7 @@ func (d *Dep) DepAPI(ctx context.Context, in ActivityInput) (activity *Activity,
 			Request:   in,
 			Response:  activity,
 			Error:     err,
-			LatencyMs: int(time.Since(start).Milliseconds()),
+			DurationMs: int(time.Since(start).Milliseconds()),
 		})
 	}(start)
 
