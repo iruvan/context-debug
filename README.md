@@ -77,6 +77,8 @@ POSTGRES_DSN="postgres://user@localhost:5432/postgres?sslmode=disable" go run .
 curl -H "is-debug: 1" http://localhost:8023/test-1
 ```
 
+Example Debug Output: ![img.png](docs/dbg_out.png)
+
 ## Development
 
 ```
