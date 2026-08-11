@@ -67,3 +67,21 @@ instead of raw context.Value keys.
 
 - Check `git log --oneline -20` for how recent commits are actually styled before assuming this repo already follows the spec strictly.
 - When drafting a commit message per the user's global commit workflow (see CLAUDE.md / top-level instructions on commit style), still shape the subject line as `<type>[optional scope]: <description>`.
+
+## Co-author trailer
+
+Any commit Claude runs `git commit` for — regardless of what triggered it
+(direct "commit this" request, mid-flow inside `open-pr`, or any other
+skill) — always ends with this footer, one blank line after the rest of
+the body/footers:
+
+```
+Co-Authored-By: Claude <noreply@anthropic.com>
+```
+
+Use the generic `Claude` name, not the specific model name/version
+(e.g. not `Claude Sonnet 5`) — this trailer shouldn't need editing every
+time the underlying model changes.
+
+This is not conditional on phrasing. If Claude is the one invoking
+`git commit`, the trailer goes in.
