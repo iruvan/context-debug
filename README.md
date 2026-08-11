@@ -1,5 +1,9 @@
 # context-debug
 
+[![Test](https://github.com/iruvan/context-debug/actions/workflows/test.yml/badge.svg)](https://github.com/iruvan/context-debug/actions/workflows/test.yml)
+[![Go Report Card](https://goreportcard.com/badge/github.com/iruvan/context-debug)](https://goreportcard.com/report/github.com/iruvan/context-debug)
+[![Go Reference](https://pkg.go.dev/badge/github.com/iruvan/context-debug.svg)](https://pkg.go.dev/github.com/iruvan/context-debug)
+
 A tiny Go package for collecting per-dependency-call debug data (name,
 request, response, error, duration) on a `context.Context`, so a service can
 attach a debug trail to a request and return it only when debug mode is on —
