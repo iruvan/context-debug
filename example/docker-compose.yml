@@ -1,0 +1,26 @@
+# A seeded Postgres for the example — the table and rows in db/init.sql are
+# created on first start, so there's nothing to set up by hand.
+#
+#   make run   # start this, then run the service on your machine
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: demo
+      POSTGRES_PASSWORD: demo
+      POSTGRES_DB: contextdebug
+    ports:
+      # 5433 on the host, so it doesn't collide with a local Postgres.
+      - "5433:5432"
+    volumes:
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+      # Named so `make down` keeps the data and `make clean` drops it.
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U demo -d contextdebug"]
+      interval: 2s
+      timeout: 3s
+      retries: 15
+
+volumes:
+  pgdata:

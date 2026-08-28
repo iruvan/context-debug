@@ -74,10 +74,21 @@ Postgres query and an external HTTP API through instrumented dependency
 methods, and includes the collected `Entry` values in the JSON response
 when debug mode was on.
 
+It ships with Docker Compose and a Makefile, so no local Postgres or manual
+table setup is needed — the `users` table is created and seeded on first
+start:
+
 ```
 cd example
+make run      # start the seeded Postgres in Docker, then run the service
+make request  # in another shell: curl -H "is-debug: 1" localhost:8023/test-1
+make down     # stop Postgres (make clean also drops the data)
+```
+
+Or point it at your own database:
+
+```
 POSTGRES_DSN="postgres://user@localhost:5432/postgres?sslmode=disable" go run .
-curl -H "is-debug: 1" http://localhost:8023/test-1
 ```
 
 Example Debug Output:

@@ -35,10 +35,10 @@ func (d *Dep) DepDB(ctx context.Context, in UserInput) (users []User, err error)
 
 	defer func(start time.Time) {
 		contextdebug.Collect(ctx, contextdebug.Entry{
-			Name:      "DepDB.GetUsers",
-			Request:   in,
-			Response:  users,
-			Error:     err,
+			Name:       "DepDB.GetUsers",
+			Request:    in,
+			Response:   users,
+			Error:      err,
 			DurationMs: int(time.Since(start).Milliseconds()),
 		})
 	}(start)
@@ -55,7 +55,7 @@ func (d *Dep) DepDB(ctx context.Context, in UserInput) (users []User, err error)
 		var u User
 		err = rows.Scan(&u.ID, &u.Name, &u.Email, &u.CreatedAt)
 		if err != nil {
-			log.Printf("[Dep][DepDB] failed scan, %w", err)
+			log.Printf("[Dep][DepDB] failed scan, %v", err)
 			break
 		}
 
@@ -103,10 +103,10 @@ func (d *Dep) DepAPI(ctx context.Context, in ActivityInput) (activity *Activity,
 
 	defer func(start time.Time) {
 		contextdebug.Collect(ctx, contextdebug.Entry{
-			Name:      "DepAPI.RandomActivity",
-			Request:   in,
-			Response:  activity,
-			Error:     err,
+			Name:       "DepAPI.RandomActivity",
+			Request:    in,
+			Response:   activity,
+			Error:      err,
 			DurationMs: int(time.Since(start).Milliseconds()),
 		})
 	}(start)
@@ -131,7 +131,7 @@ func (d *Dep) DepAPI(ctx context.Context, in ActivityInput) (activity *Activity,
 
 	activity = &a
 	if a.Availability < in.AvailabilityThreshold {
-		return nil, nil
+		return &Activity{Activity: "Not available"}, nil
 	}
 
 	return activity, err
