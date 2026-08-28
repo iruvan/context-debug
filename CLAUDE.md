@@ -22,14 +22,17 @@ attach a debug trail to an HTTP response only when debug mode is enabled.
 - `example/` — a standalone Go module (`go.mod` replaces
   `github.com/iruvan/context-debug` with `../`) demonstrating usage in an
   HTTP service that queries Postgres and an external API through
-  instrumented dependency methods.
+  instrumented dependency methods. `docker-compose.yml` (Postgres only),
+  `db/init.sql` (schema + seed data) and a `Makefile` make it runnable
+  with `make run` alone.
 - `docs/` — design docs (`TRD.pdf`) and `decision_log/`.
 
 ## Commands
 
 ```
 go test ./...              # run the package tests (root module)
-cd example && go run .     # run the example HTTP service (needs POSTGRES_DSN)
+cd example && make run     # seeded Postgres in Docker, service on the host
+cd example && go run .     # run against your own DB (needs POSTGRES_DSN)
 ```
 
 There is no separate lint config; rely on `go vet` and standard `gofmt`.
