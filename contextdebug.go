@@ -14,11 +14,12 @@ var debugCtxKey = ctxKey{}
 
 // Entry captures the details of a single dependency call.
 type Entry struct {
-	Name       string      `json:"name"`
-	Request    interface{} `json:"req"`
-	Response   interface{} `json:"resp"`
-	Error      error       `json:"err"`
-	DurationMs int         `json:"duration_ms"`
+	Name       string         `json:"name"`
+	Request    any            `json:"req"`
+	Response   any            `json:"resp"`
+	Error      error          `json:"err"`
+	DurationMs int            `json:"duration_ms"`
+	Custom     map[string]any `json:"custom,omitempty"`
 }
 
 type Option struct {
@@ -36,7 +37,7 @@ type store struct {
 // enabled (e.g. based on a request flag) before calling New.
 func New(ctx context.Context, opt ...Option) context.Context {
 	s := &store{}
-	if opt != nil && opt[0].EntriesLimit > 0 {
+	if len(opt) > 0 && opt[0].EntriesLimit > 0 {
 		s.opt.EntriesLimit = opt[0].EntriesLimit
 	}
 

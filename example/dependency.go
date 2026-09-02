@@ -131,7 +131,8 @@ func (d *Dep) DepAPI(ctx context.Context, in ActivityInput) (activity *Activity,
 
 	activity = &a
 	if a.Availability < in.AvailabilityThreshold {
-		return &Activity{Activity: "Not available"}, nil
+		activity.Activity = "Not available"
+		return activity, nil
 	}
 
 	return activity, err
