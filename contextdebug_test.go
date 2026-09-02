@@ -23,6 +23,36 @@ type exportedFieldsErr struct {
 
 func (e *exportedFieldsErr) Error() string { return e.Msg }
 
+func entriesEqual(got, want []contextdebug.Entry) bool {
+	if len(got) != len(want) {
+		return false
+	}
+	for i := range got {
+		if !entryEqual(got[i], want[i]) {
+			return false
+		}
+	}
+	return true
+}
+
+func entryEqual(got, want contextdebug.Entry) bool {
+	if got.Name != want.Name ||
+		got.DurationMs != want.DurationMs ||
+		!reflect.DeepEqual(got.Request, want.Request) ||
+		!reflect.DeepEqual(got.Response, want.Response) ||
+		!reflect.DeepEqual(got.Custom, want.Custom) {
+		return false
+	}
+	return errorsEqual(got.Error, want.Error)
+}
+
+func errorsEqual(got, want error) bool {
+	if got == nil || want == nil {
+		return got == nil && want == nil
+	}
+	return got.Error() == want.Error()
+}
+
 func TestNew(t *testing.T) {
 	cases := []struct {
 		name string
@@ -65,7 +95,7 @@ func TestNew(t *testing.T) {
 
 		got := contextdebug.Snapshot(inner)
 		want := []contextdebug.Entry{{Name: "inner"}}
-		if !reflect.DeepEqual(got, want) {
+		if !entriesEqual(got, want) {
 			t.Fatalf("Snapshot(inner) = %#v, want %#v (calling New twice replaces the store rather than merging)", got, want)
 		}
 	})
@@ -138,7 +168,15 @@ func TestCollect(t *testing.T) {
 			name: "single entry round-trips",
 			ctx:  func() context.Context { return contextdebug.New(context.Background()) },
 			entries: []contextdebug.Entry{
-				{Name: "DepDB", Request: "SELECT 1", Response: 42, DurationMs: 5},
+				{Name: "DepDB", Request: "SELECT 1", Response: 42, DurationMs: 5, Custom: nil},
+			},
+			enabled: true,
+		},
+		{
+			name: "single entry with custom field",
+			ctx:  func() context.Context { return contextdebug.New(context.Background()) },
+			entries: []contextdebug.Entry{
+				{Name: "DepDB", Request: "SELECT 1", Response: 42, DurationMs: 5, Custom: map[string]any{"key": "value"}},
 			},
 			enabled: true,
 		},
@@ -185,7 +223,10 @@ func TestCollect(t *testing.T) {
 				return
 			}
 
-			if !reflect.DeepEqual(got, tc.entries) {
+			json, _ := json.Marshal(got)
+			t.Logf("got: %s \n", string(json))
+
+			if !entriesEqual(got, tc.entries) {
 				t.Fatalf("Snapshot() = %#v, want %#v", got, tc.entries)
 			}
 		})
@@ -266,7 +307,7 @@ func TestSnapshot(t *testing.T) {
 
 		snap2 := contextdebug.Snapshot(ctx)
 		want := []contextdebug.Entry{{Name: "original"}}
-		if !reflect.DeepEqual(snap2, want) {
+		if !entriesEqual(snap2, want) {
 			t.Fatalf("Snapshot() after local mutation = %#v, want untouched %#v", snap2, want)
 		}
 	})

@@ -14,11 +14,12 @@ var debugCtxKey = ctxKey{}
 
 // Entry captures the details of a single dependency call.
 type Entry struct {
-	Name       string      `json:"name"`
-	Request    interface{} `json:"req"`
-	Response   interface{} `json:"resp"`
-	Error      error       `json:"err"`
-	DurationMs int         `json:"duration_ms"`
+	Name       string         `json:"name"`
+	Request    any            `json:"req"`
+	Response   any            `json:"resp"`
+	Error      error          `json:"err"`
+	DurationMs int            `json:"duration_ms"`
+	Custom     map[string]any `json:"custom,omitempty"`
 }
 
 type Option struct {
