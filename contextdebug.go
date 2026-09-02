@@ -37,7 +37,7 @@ type store struct {
 // enabled (e.g. based on a request flag) before calling New.
 func New(ctx context.Context, opt ...Option) context.Context {
 	s := &store{}
-	if len(opt) == 0 && opt[0].EntriesLimit > 0 {
+	if len(opt) > 0 && opt[0].EntriesLimit > 0 {
 		s.opt.EntriesLimit = opt[0].EntriesLimit
 	}
 
