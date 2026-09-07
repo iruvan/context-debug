@@ -4,3 +4,4 @@ docs/decision_log/
 .DS_Store
 .claude/script/*
 /.idea/*
+__debug_bin*
